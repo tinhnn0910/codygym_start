@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Currency conversion</title>
+    <style>
+        table {
+            width: 50%;
+            border-collapse: collapse;
+        }
+
+        td, th {
+            text-align: center;
+        }
+
+        p {
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+<table>
+    <tr>
+        <th><b>Amount</b></th>
+        <th><b>From Currency</b></th>
+        <th><b>To Currency</b></th>
+    </tr>
+    <tr>
+        <td><input type="text" name="amount" id="amount"></td>
+        <td><select id="input">
+            <option value="VND">VND</option>
+            <option value="USD">USD</option>
+            <option value="Pound">Pound</option>
+            <option value="Euro">Euro</option>
+        </select></td>
+        <td><select id="output">
+            <option value="VND">VND</option>
+            <option value="USD">USD</option>
+            <option value="Pound">Pound</option>
+            <option value="Euro">Euro</option>
+        </select></td>
+        <td><input type="button" onclick="currencyConversion()" name="convert" value="Convert"/></td>
+    </tr>
+</table>
+<span style="color: blue">Result:</span>
+<span id="result" style="color: blue"></span>
+<script>
+    function currencyConversion() {
+        let money = document.getElementById("amount").value;
+        let inputCurrency = document.getElementById("input").value;
+        let outputCurrency = document.getElementById("output").value;
+        let result;
+        if (inputCurrency == "VND") {
+            if (outputCurrency == "VND") {
+                result = money;
+            } else if (outputCurrency == "USD") {
+                result = money * 0.000039;
+            } else if (outputCurrency == "Pound") {
+                result = money * 0.00003;
+            } else {
+                result = money * 0.000036;
+            }
+        }
+        document.getElementById("result").innerHTML = result;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Sản phẩm</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-8">
+<div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+    <div class="p-8">
+        <h1 class="text-3xl font-bold mb-6">Quản lý Sản phẩm</h1>
+
+        <form id="productForm" class="mb-8">
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" id="name" placeholder="Tên sản phẩm" class="border p-2 rounded" required>
+                <input type="number" id="price" placeholder="Giá" class="border p-2 rounded" required>
+                <input type="number" id="quantity" placeholder="Số lượng" class="border p-2 rounded" required>
+                <input type="text" id="category" placeholder="Danh mục" class="border p-2 rounded" required>
+                <input type="file" id="image" accept="image/*" class="border p-2 rounded">
+            </div>
+            <button type="submit" id="submitBtn" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Thêm sản phẩm</button>
+        </form>
+
+        <table class="w-full">
+            <thead>
+            <tr class="bg-gray-200">
+                <th class="p-2 text-left">Ảnh</th>
+                <th class="p-2 text-left">Tên</th>
+                <th class="p-2 text-left">Giá</th>
+                <th class="p-2 text-left">Số lượng</th>
+                <th class="p-2 text-left">Danh mục</th>
+                <th class="p-2 text-left">Hành động</th>
+            </tr>
+            </thead>
+            <tbody id="productList"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    class Product {
+        constructor(id, name, price, quantity, category, image) {
+            this.id = id;
+            this.name = name;
+            this.price = price;
+            this.quantity = quantity;
+            this.category = category;
+            this.image = image;
+        }
+    }
+
+    class ProductManager {
+        constructor() {
+            this.products = [];
+            this.currentId = 1;
+        }
+
+        addProduct(product) {
+            product.id = this.currentId++;
+            this.products.push(product);
+        }
+
+        updateProduct(id, updatedProduct) {
+            const index = this.products.findIndex(p => p.id === id);
+            if (index !== -1) {
+                this.products[index] = { ...this.products[index], ...updatedProduct };
+            }
+        }
+
+        deleteProduct(id) {
+            this.products = this.products.filter(p => p.id !== id);
+        }
+
+        getProducts() {
+            return this.products;
+        }
+    }
+
+    const productManager = new ProductManager();
+    let editingProductId = null;
+
+    document.getElementById('productForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const price = document.getElementById('price').value;
+        const quantity = document.getElementById('quantity').value;
+        const category = document.getElementById('category').value;
+        const imageFile = document.getElementById('image').files[0];
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const image = event.target.result;
+            if (editingProductId) {
+                productManager.updateProduct(editingProductId, { name, price, quantity, category, image });
+                editingProductId = null;
+                document.getElementById('submitBtn').textContent = 'Thêm sản phẩm';
+            } else {
+                const product = new Product(null, name, price, quantity, category, image);
+                productManager.addProduct(product);
+            }
+            updateProductList();
+        };
+
+        if (imageFile) {
+            reader.readAsDataURL(imageFile);
+        } else if (editingProductId) {
+            // Nếu không có ảnh mới, giữ lại ảnh cũ
+            const oldProduct = productManager.getProducts().find(p => p.id === editingProductId);
+            productManager.updateProduct(editingProductId, { name, price, quantity, category, image: oldProduct.image });
+            editingProductId = null;
+            document.getElementById('submitBtn').textContent = 'Thêm sản phẩm';
+            updateProductList();
+        }
+
+        this.reset();
+    });
+
+    function updateProductList() {
+        const productList = document.getElementById('productList');
+        productList.innerHTML = '';
+
+        productManager.getProducts().forEach(product => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                    <td class="border-t p-2"><img src="${product.image}" alt="${product.name}" class="w-16 h-16 object-cover"></td>
+                    <td class="border-t p-2">${product.name}</td>
+                    <td class="border-t p-2">${product.price}</td>
+                    <td class="border-t p-2">${product.quantity}</td>
+                    <td class="border-t p-2">${product.category}</td>
+                    <td class="border-t p-2">
+                        <button onclick="editProduct(${product.id})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 mr-2">Sửa</button>
+                        <button onclick="deleteProduct(${product.id})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Xóa</button>
+                    </td>
+                `;
+            productList.appendChild(row);
+        });
+    }
+
+    function editProduct(id) {
+        const product = productManager.getProducts().find(p => p.id === id);
+        if (product) {
+            document.getElementById('name').value = product.name;
+            document.getElementById('price').value = product.price;
+            document.getElementById('quantity').value = product.quantity;
+            document.getElementById('category').value = product.category;
+            editingProductId = id;
+            document.getElementById('submitBtn').textContent = 'Cập nhật sản phẩm';
+        }
+    }
+
+    function deleteProduct(id) {
+        if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+            productManager.deleteProduct(id);
+            updateProductList();
+        }
+    }
+</script>
+</body>
+</html>
