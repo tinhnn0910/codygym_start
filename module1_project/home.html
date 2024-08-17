@@ -106,7 +106,6 @@
         if (imageFile) {
             reader.readAsDataURL(imageFile);
         } else if (editingProductId) {
-            // Nếu không có ảnh mới, giữ lại ảnh cũ
             const oldProduct = productManager.getProducts().find(p => p.id === editingProductId);
             productManager.updateProduct(editingProductId, { name, price, quantity, category, image: oldProduct.image });
             editingProductId = null;
